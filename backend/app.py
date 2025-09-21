@@ -16,10 +16,11 @@ import os
 import io
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Allow only the production frontend origin
+CORS(app, origins=["https://global-decryptor.vercel.app"])
 
 # limit uploads to ~50 MB (adjusted as per your request)
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 
 def try_decrypt(ciphertext: bytes, key: bytes):

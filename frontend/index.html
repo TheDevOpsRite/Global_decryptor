@@ -828,7 +828,7 @@
             messageDiv.textContent = "⏳ Decrypting, please wait...";
 
             try {
-                const response = await fetch("http://localhost:5001/decrypt", {
+                const response = await fetch("https://global-decryptor.onrender.com/decrypt", {
                     method: "POST",
                     body: formData
                 });
