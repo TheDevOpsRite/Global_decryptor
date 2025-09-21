@@ -3,3 +3,4 @@ flask-cors>=3.0
 Werkzeug>=2.0
 filetype==1.2.0
 gunicorn
+pycryptodome
