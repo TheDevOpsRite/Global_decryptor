@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>File Decryption Tool</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f9fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+
+            /* Background image (miuibgimage) */
+            background-image: url('miuibgimage.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            /* subtle overlay to keep container readable */
+            position: relative;
+        }
+
+        /* Optional dim overlay to improve contrast */
+        body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.25);
+            pointer-events: none;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            /* above page overlay */
+        }
+
+        /* New: centered image (tdrcropped) */
+        #centerImage {
+            width: 140px;
+            height: auto;
+            display: block;
+            margin: 0 auto 14px;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="file"] {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 12px;
+            width: 100%;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+            position: relative;
+            z-index: 3;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Loading overlay with cropped video */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            /* shown via JS while loading */
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        #loadingOverlay.visible {
+            display: flex;
+        }
+
+        #loadingOverlay video {
+            width: min(60vw, 560px);
+            max-height: 70vh;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+            background: black;
+        }
+
+        /* Floating side stacks (left & right) */
+        .floating-stack {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            z-index: 10000;
+            pointer-events: auto;
+        }
+
+        .floating-right {
+            right: 18px;
+        }
+
+        .floating-left {
+            left: 18px;
+        }
+
+        /* Base icon style */
+        .floating-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.96);
+            color: #111;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+            text-decoration: none;
+            transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Make SVG paths follow the icon color */
+        .floating-icon svg,
+        .floating-icon svg path {
+            width: 18px;
+            height: 18px;
+            display: block;
+            fill: currentColor;
+        }
+
+        /* Brand colors */
+        .floating-icon.youtube {
+            background: #FF0000;
+            /* YouTube red */
+            color: #fff;
+        }
+
+        .floating-icon.youtube:hover {
+            background: #cc0000;
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        .floating-icon.github {
+            background: #24292e;
+            /* GitHub dark */
+            color: #fff;
+        }
+
+        .floating-icon.github:hover {
+            background: #1b1f23;
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        .floating-icon.site {
+            background: linear-gradient(135deg, #0066ff, #00ccff);
+            /* blue gradient */
+            color: #fff;
+        }
+
+        .floating-icon.site:hover {
+            filter: brightness(0.95);
+            transform: translateY(-4px) scale(1.03);
+        }
+
+        /* Feedback / custom button */
+        .floating-icon.feedback {
+            background: linear-gradient(180deg, #ffd166, #ff6b6b);
+            color: #111;
+        }
+
+        .floating-icon.feedback:hover {
+            filter: brightness(0.96);
+            transform: translateY(-4px) scale(1.03);
+        }
+
+        /* Hover fallback for other icons */
+        .floating-icon:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        }
+
+        /* Focus state for accessibility */
+        .floating-icon:focus {
+            outline: 3px solid rgba(0, 123, 255, 0.18);
+            outline-offset: 3px;
+        }
+
+        /* Feedback popup overlay */
+        .feedback-popup {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 34, 40, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 12000;
+            transition: background 0.2s;
+        }
+
+        /* Popup content box */
+        .feedback-popup-content {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.22);
+            padding: 32px 24px 20px 24px;
+            max-width: 95vw;
+            width: 370px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: popupIn 0.25s cubic-bezier(.4, 1.4, .6, 1) both;
+        }
+
+        @keyframes popupIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Close button */
+        .close-btn {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            font-size: 1.7rem;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.15s;
+            z-index: 2;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #ff6b6b;
+        }
+
+        /* Feedback popup heading */
+        .feedback-popup-content h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.25rem;
+            color: #222;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Feedback popup image */
+        .feedback-popup-content img {
+            margin: 0 0 10px 0;
+            width: 54px;
+            height: 54px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+        }
+
+        /* Feedback note */
+        .feedback-popup-content p {
+            margin: 0 0 16px 0;
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* Feedback form fields */
+        #contactForm input[type="email"],
+        #contactForm input[type="text"],
+        #contactForm textarea {
+            width: 93%;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            border-radius: 7px;
+            border: 1px solid #d1d5db;
+            background: #f8fafc;
+            font-size: 15px;
+            resize: none;
+            transition: border 0.15s;
+            outline: none;
+        }
+
+        #contactForm input[type="email"]:focus,
+        #contactForm input[type="text"]:focus,
+        #contactForm textarea:focus {
+            border: 1.5px solid #007bff;
+            background: #fff;
+        }
+
+        #contactForm textarea {
+            min-height: 60px;
+            max-height: 120px;
+        }
+
+        #contactForm .submit-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        #contactForm button[type="submit"] {
+            background: linear-gradient(90deg, #007bff, #00c6ff);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 10px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.08);
+            transition: background 0.18s, box-shadow 0.18s;
+        }
+
+        #contactForm button[type="submit"]:hover {
+            background: linear-gradient(90deg, #0056b3, #00aaff);
+            box-shadow: 0 4px 16px rgba(0, 123, 255, 0.13);
+        }
+
+        /* Responsive for mobile */
+        @media (max-width: 480px) {
+            .feedback-popup-content {
+                width: 98vw;
+                min-width: 0;
+                padding: 16px 6vw 16px 6vw;
+            }
+        }
+
+        @media (max-width: 640px) {
+
+            /* ensure page has space for bottom floating icons */
+            body {
+                padding: 12px 12px 100px;
+                background-position: center top;
+            }
+
+            /* container becomes full width with comfortable padding */
+            .container {
+                max-width: 100%;
+                width: calc(100% - 24px);
+                margin: 0 auto;
+                padding: 18px;
+                border-radius: 10px;
+            }
+
+            /* smaller centered image */
+            #centerImage {
+                width: 100px;
+                margin-bottom: 12px;
+            }
+
+            /* larger touch-friendly form controls */
+            input[type="text"],
+            input[type="file"] {
+                font-size: 16px;
+                padding: 12px;
+            }
+
+            button {
+                font-size: 18px;
+                padding: 14px;
+            }
+
+            /* Loading video smaller & circular on mobile */
+            #loadingOverlay video {
+                width: 160px;
+                height: 160px;
+                border-radius: 50%;
+                object-fit: cover;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+
+            /* Floating stacks move to bottom and become horizontal rows */
+            .floating-stack {
+                top: auto;
+                bottom: 14px;
+                transform: none;
+                flex-direction: row;
+                gap: 10px;
+                padding: 6px;
+                background: transparent;
+            }
+
+            .floating-left {
+                left: 14px;
+            }
+
+            .floating-right {
+                right: 14px;
+            }
+
+            /* ensure clickable area is comfortable */
+            .floating-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                font-size: 20px;
+            }
+
+            /* feedback popup responsive */
+            #feedbackPopup .feedback-popup-content {
+                width: calc(100% - 32px);
+                margin: 12px;
+            }
+        }
+
+        .privacy-note {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.92);
+            color: #333;
+            font-size: 15px;
+            text-align: center;
+            padding: 10px 0 8px 0;
+            z-index: 9000;
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+            letter-spacing: 0.01em;
+            font-family: inherit;
+        }
+
+        @media (max-width: 640px) {
+            .privacy-note {
+                font-size: 13px;
+                padding: 8px 0 7px 0;
+            }
+        }
+
+        /* New floating button style */
+        .floating-bottom-btn {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(90deg, #ff9800, #ffb347);
+            color: #fff;
+            font-size: 17px;
+            font-weight: 600;
+            border-radius: 28px;
+            box-shadow: 0 4px 18px rgba(255, 152, 0, 0.13);
+            padding: 12px 22px 12px 18px;
+            text-decoration: none;
+            z-index: 12001;
+            transition: background 0.18s, box-shadow 0.18s, transform 0.13s;
+            cursor: pointer;
+        }
+
+        .floating-bottom-btn svg {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        .floating-bottom-btn:hover,
+        .floating-bottom-btn:focus {
+            background: linear-gradient(90deg, #ff6f00, #ff9800);
+            box-shadow: 0 8px 32px rgba(255, 152, 0, 0.18);
+            transform: translateX(-50%) translateY(-2px) scale(1.04);
+            color: #fff;
+            outline: none;
+        }
+
+        @media (max-width: 640px) {
+            .floating-bottom-btn {
+                bottom: 90px;
+                font-size: 15px;
+                padding: 10px 16px 10px 14px;
+            }
+        }
+
+        /* Error popup */
+        .error-popup {
+            position: fixed;
+            inset: 0;
+            background: rgba(30, 34, 40, 0.35);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 13000;
+        }
+
+        .error-popup-content {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 32px rgba(0, 0, 0, 0.18);
+            padding: 24px 22px 18px 22px;
+            min-width: 240px;
+            max-width: 90vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            animation: popupIn 0.22s cubic-bezier(.4, 1.4, .6, 1) both;
+        }
+
+        .error-popup-msg {
+            color: #d32f2f;
+            font-size: 15px;
+            margin-bottom: 18px;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .error-popup-ok-btn {
+            background: linear-gradient(90deg, #ff9800, #ffb347);
+            color: #fff;
+            border: none;
+            border-radius: 7px;
+            padding: 8px 28px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.10);
+            transition: background 0.18s, box-shadow 0.18s;
+        }
+
+        .error-popup-ok-btn:hover {
+            background: linear-gradient(90deg, #ff6f00, #ff9800);
+        }
+
+        .error-popup .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            font-size: 1.3rem;
+            color: #888;
+            cursor: pointer;
+            font-weight: bold;
+            transition: color 0.15s;
+            z-index: 2;
+            line-height: 1;
+        }
+
+        .error-popup .close-btn:hover {
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 480px) {
+            .error-popup-content {
+                min-width: 0;
+                width: 92vw;
+                padding: 16px 4vw 14px 4vw;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- New centered image (tdrcropped) -->
+        <img id="centerImage" src="TDRcropped.jpg" alt="Logo">
+
+        <h2>Decrypt Encrypted File</h2>
+        <form id="decryptForm">
+            <input type="text" id="hexKey" placeholder="Enter 16 digit Hex Key">
+            <input type="file" id="fileInput" required>
+            <p>Your feedback matter a lot for us. Please provide.</p>
+            <button type="submit">Decrypt File</button>
+        </form>
+        <div class="message" id="message"></div>
+    </div>
+
+    <!-- New loading overlay markup as requested -->
+    <div id="loadingOverlay" aria-hidden="true">
+        <video id="loadingVideo" src="tdrvideo cropped.mp4" autoplay muted playsinline loop></video>
+        <span>The DevOps Rite</span>
+        <div id="loadingMessage">Loading...Please do not refresh!</div>
+    </div>
+    <div id="feedbackPopup" class="feedback-popup" style="display:none;">
+        <div class="feedback-popup-content">
+            <span id="closeFeedback" class="close-btn">&times;</span>
+            <h2>Your feedback is important.</h2>
+            <img src="TDRcropped.jpg" alt="" style="width: 50px; height: 50px; border-radius: 8px;">
+            <p style="font-size: 12px;">Note: Your data is secure with us. We never store your data, Email will be used
+                just for responses only.</p>
+            <form action="https://api.web3forms.com/submit" method="POST" id="contactForm">
+                <input type="hidden" name="access_key" value="0d9e6867-cb21-457f-ae4d-6f94d7879be0">
+                <!-- Order: Email, Name, Subject, Message (vertical) -->
+                <input type="email" name="email" placeholder="Your Email" required>
+                <input type="text" name="name" placeholder="Your Name" required>
+                <input type="text" name="subject" placeholder="Subject" required>
+                <textarea name="message" placeholder="Your Message" required></textarea>
+                <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+                <div class="submit-row">
+                    <button type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Error popup -->
+    <div id="errorPopup" class="error-popup" style="display:none;">
+        <div class="error-popup-content">
+            <span id="closeErrorPopup" class="close-btn">&times;</span>
+            <div id="errorPopupMsg" class="error-popup-msg"></div>
+            <button id="errorPopupOkBtn" class="error-popup-ok-btn">OK</button>
+        </div>
+    </div>
+
+    <!-- Floating social icons -->
+    <div class="floating-stack floating-right" aria-hidden="false">
+        <a class="floating-icon youtube" href="https://www.youtube.com/@TheDevOpsRite" target="_blank"
+            rel="noopener noreferrer" aria-label="YouTube">
+            <!-- simple svg play icon -->
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                <path d="M10 8.64L15.27 12 10 15.36V8.64z" />
+                <path
+                    d="M21.8 8s-.2-1.4-.82-2.02C19.9 5 12 5 12 5s-7.9 0-8.98.98C2.4 6.6 2.2 8 2.2 8S2 9.6 2 11.2v1.6C2 14.4 2.2 16 2.2 16s.2 1.4.82 2.02C4.1 19 12 19 12 19s7.9 0 8.98-.98c.62-.62.82-2.02.82-2.02s.2-1.6.2-3.2V11.2C22 9.6 21.8 8 21.8 8z"
+                    opacity=".35" />
+            </svg>
+        </a>
+        <a class="floating-icon site" href="https://devopsrite.vercel.app/" target="_blank" rel="noopener noreferrer"
+            aria-label="Website">
+            🌐
+        </a>
+    </div>
+
+    <!-- Single left stack: GitHub + feedback button (non-submit) -->
+    <div class="floating-stack floating-left" aria-hidden="false">
+        <a class="floating-icon github" href="https://github.com/TheDevOpsRite" target="_blank"
+            rel="noopener noreferrer" aria-label="GitHub">
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                <path
+                    d="M12 .5a12 12 0 00-3.8 23.4c.6.1.8-.2.8-.5v-1.9c-3.3.7-4-1.6-4-1.6-.5-1.2-1.2-1.5-1.2-1.5-1-.7.1-.7.1-.7 1.1.1 1.7 1.1 1.7 1.1 1 .1.7-1 .7-1 .1-.7.5-1.1.9-1.4-2.6-.3-5.4-1.3-5.4-6a4.8 4.8 0 01.9-3.3 4.5 4.5 0 01.1-3.2s.8-.3 2.8 1a9.6 9.6 0 015 0c2-.6 2.8-1 2.8-1 .8 1.6.3 2.9.1 3.2a4.8 4.8 0 01.9 3.3c0 4.6-2.8 5.6-5.4 6 .5.4 1 .9 1 1.9v2.8c0 .3.2.6.8.5A12 12 0 0012 .5z" />
+            </svg>
+        </a>
+        <button id="feedbackbtn" type="button" class="floating-icon feedback" aria-label="Feedback">📝</button>
+    </div>
+
+    <!-- Floating bottom button -->
+    <a href="https://hex-cert-extractor.vercel.app/" target="_blank" class="floating-bottom-btn" aria-label="Go to another page">
+        <span>Hex&nbsp;Extractor</span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M13 5l7 7-7 7M5 12h14" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+    </a>
+
+    <script>
+        // Show loading overlay for 2 seconds on first load
+        window.addEventListener('DOMContentLoaded', function () {
+            var overlay = document.getElementById('loadingOverlay');
+            var video = document.getElementById('loadingVideo');
+            var span = overlay ? overlay.querySelector('span') : null;
+            if (overlay && video && span) {
+                overlay.style.position = 'fixed';
+                overlay.style.top = 0;
+                overlay.style.left = 0;
+                overlay.style.width = '100vw';
+                overlay.style.height = '100vh';
+                overlay.style.background = '#232f3e';
+                overlay.style.display = 'flex';
+                overlay.style.flexDirection = 'column';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.zIndex = 9999;
+                video.style.width = '220px';
+                video.style.height = '220px';
+                video.style.borderRadius = '50%';
+                video.style.objectFit = 'cover';
+                video.playbackRate = 4;
+                span.style.display = 'block';
+                span.style.marginTop = '24px';
+                span.style.color = '#fff';
+                span.style.fontSize = '2rem';
+                span.style.fontWeight = 'bold';
+                span.style.letterSpacing = '2px';
+                span.style.textAlign = 'center';
+                span.style.textShadow = '0 2px 8px rgba(0,0,0,0.3)';
+                setTimeout(function () {
+                    overlay.style.display = 'none';
+                }, 2000);
+            }
+        });
+        // Feedback popup logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const feedbackBtn = document.getElementById('feedbackbtn'); // matches your button id
+            const feedbackPopup = document.getElementById('feedbackPopup');
+            const closeFeedback = document.getElementById('closeFeedback');
+
+            if (feedbackBtn && feedbackPopup) {
+                feedbackBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    feedbackPopup.style.display = 'flex';
+                    feedbackPopup.setAttribute('aria-hidden', 'false');
+                });
+            }
+
+            if (closeFeedback && feedbackPopup) {
+                closeFeedback.addEventListener('click', function () {
+                    feedbackPopup.style.display = 'none';
+                    feedbackPopup.setAttribute('aria-hidden', 'true');
+                });
+            }
+
+            // Close when clicking outside the popup content
+            window.addEventListener('click', function (e) {
+                if (e.target === feedbackPopup) {
+                    feedbackPopup.style.display = 'none';
+                    feedbackPopup.setAttribute('aria-hidden', 'true');
+                }
+            });
+        });
+
+        // Error popup logic
+        function showErrorPopup(msg) {
+            const popup = document.getElementById('errorPopup');
+            const msgDiv = document.getElementById('errorPopupMsg');
+            msgDiv.textContent = msg;
+            popup.style.display = 'flex';
+        }
+
+        function hideErrorPopup() {
+            document.getElementById('errorPopup').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const closeBtn = document.getElementById('closeErrorPopup');
+            const okBtn = document.getElementById('errorPopupOkBtn');
+            if (closeBtn) closeBtn.onclick = hideErrorPopup;
+            if (okBtn) okBtn.onclick = hideErrorPopup;
+            // Optional: close on outside click
+            document.getElementById('errorPopup').onclick = function (e) {
+                if (e.target === this) hideErrorPopup();
+            };
+        });
+
+        // Form submission and file decryption logic
+        const form = document.getElementById("decryptForm");
+        const messageDiv = document.getElementById("message");
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const loadingVideo = document.getElementById("loadingVideo");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            messageDiv.textContent = "";
+
+            const hexKey = document.getElementById("hexKey").value.trim();
+            const file = document.getElementById("fileInput").files[0];
+
+            // Show error in popup for missing file
+            if (!file) {
+                showErrorPopup("Please select a file.");
+                messageDiv.textContent = "❌ Please select a file.";
+                messageDiv.className = "message error";
+                return;
+            }
+
+            // Show error in popup for file size
+            if (file.size > 100 * 1024 * 1024) {
+                showErrorPopup("File too large (max 50MB).");
+                messageDiv.textContent = "❌ File too large (max 50MB).";
+                messageDiv.className = "message error";
+                return;
+            }
+
+            // Show error in popup for missing hex key
+            if (!hexKey) {
+                showErrorPopup("Please enter a hex key.");
+                messageDiv.textContent = "❌ Please enter a hex key.";
+                messageDiv.className = "message error";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("hex_key", hexKey);
+
+            loadingOverlay.classList.add("visible");
+            loadingOverlay.setAttribute("aria-hidden", "false");
+
+            messageDiv.textContent = "⏳ Decrypting, please wait...";
+
+            try {
+                const response = await fetch("http://localhost:5001/decrypt", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errMsg = errorData.error || "Decryption failed.";
+                    showErrorPopup(errMsg);
+                    throw new Error(errMsg);
+                }
+
+                // Get decrypted blob
+                const blob = await response.blob();
+                const filename = response.headers.get("Content-Disposition")?.split("filename=")[1] || "decrypted.bin";
+
+                // Trigger file download
+                const link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename.replace(/["']/g, "");
+                link.click();
+
+                messageDiv.textContent = "✅ File decrypted and downloaded!";
+                messageDiv.className = "message";
+            } catch (err) {
+                // Show all errors in popup
+                showErrorPopup(err.message || "Unknown error occurred.");
+                messageDiv.textContent = "❌ " + err.message;
+                messageDiv.className = "message error";
+            } finally {
+                loadingOverlay.classList.remove("visible");
+                loadingOverlay.setAttribute("aria-hidden", "true");
+            }
+        });
+    </script>
+</body>
+
+</html>

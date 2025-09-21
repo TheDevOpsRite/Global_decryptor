@@ -1,0 +1,111 @@
+
+
+#loadingOverlay span {
+  color: #ffffff;
+  margin-top: 12px;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.3px;
+}
+
+#loadingMessage {
+  color: #cbd5e1;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* Floating stacks: base behaviour (kept vertical centered) */
+.floating-stack {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100000;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    pointer-events: auto;
+    padding: 6px;
+    touch-action: manipulation;
+}
+
+/* Side-specific placement */
+.floating-right { right: 18px; left: auto; flex-direction: column; }
+.floating-left  { left: 18px; right: auto; flex-direction: column; }
+
+/* Icon base */
+.floating-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+    cursor: pointer;
+    color: #111;
+    font-size: 20px;
+    transition: transform 160ms cubic-bezier(.2,.9,.2,1), box-shadow 160ms ease, opacity 120ms ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+}
+
+/* Color variations */
+.floating-icon.youtube { background: linear-gradient(180deg, #f57878, #cc0000); color: #fff; }
+.floating-icon.site    { background: linear-gradient(180deg, #6b8cff, #2b4ef7); color: #fff; }
+.floating-icon.github  { background: linear-gradient(180deg, #24292e, #0f1720); color: #fff; }
+.floating-icon.feedback{ background: linear-gradient(180deg, #f6c552, #f39c12); color: #111; }
+
+/* Hover/focus */
+.floating-icon:hover, .floating-icon:focus { transform: translateY(-6px) scale(1.06); box-shadow: 0 14px 30px rgba(0,0,0,0.22); outline: none; }
+
+/* Responsive: move to bottom corners and become horizontal on small screens */
+@media (max-width: 880px) {
+    .floating-stack {
+        top: auto;
+        bottom: 18px;
+        transform: none;
+        gap: 10px;
+        padding: 8px;
+    }
+    .floating-right { right: 14px; flex-direction: row; }
+    .floating-left  { left: 14px; flex-direction: row; }
+
+    .floating-icon { width: 56px; height: 56px; font-size: 22px; }
+}
+
+/* Very small screens: slightly smaller icons */
+@media (max-width: 420px) {
+    .floating-right { right: 10px; bottom: 12px; }
+    .floating-left  { left: 10px; bottom: 12px; }
+    .floating-icon { width: 48px; height: 48px; font-size: 18px; }
+}
+
+/* Ensure svgs inside icons scale */
+.floating-icon svg { width: 60%; height: 60%; display: block; fill: currentColor; }
+
+.feedback-popup {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.feedback-popup-content {
+    background: #fff;
+    padding: 32px;
+    border-radius: 10px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    min-width: 320px;
+    position: relative;
+}
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 24px;
+    cursor: pointer;
+}
