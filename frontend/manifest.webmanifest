@@ -1,0 +1,17 @@
+{
+  "name": "Global Decryptor",
+  "short_name": "Decryptor",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0b5fff",
+  "description": "Decrypt .sa, .sav, .lsa, .lsav files with a hex key. Educational and personal recovery only.",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48 72x72 96x96 144x144 192x192 256x256",
+      "type": "image/x-icon"
+    }
+  ]
+}

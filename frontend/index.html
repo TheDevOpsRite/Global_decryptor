@@ -3,10 +3,75 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>File Decryption Tool</title>
+    <title>Global Decryptor | Decrypt .sa .sav .lsa .lsav Files with Hex Key (Education & Recovery)</title>
+    <meta name="google-site-verification" content="s-gvdWNnKbrbmfYEW3cnsYLLIVwnXBIJ9R6yMoLW_kk" />
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Global Decryptor helps decrypt Xiaomi and other encrypted files (.sa, .sav, .lsa, .lsav) using a provided hex key. For educational use and personal file recovery only.">
+    <meta name="keywords" content="Global Decryptor, decrypt .sa, decrypt .sav, decrypt .lsa, decrypt .lsav, Xiaomi encrypted files, AES decrypt, DES decrypt, XOR decrypt, hex key decryptor, file recovery">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://global-decryptor.vercel.app/">
+    <link rel="alternate" hreflang="en" href="https://global-decryptor.vercel.app/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0b5fff">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://global-decryptor.vercel.app/">
+    <meta property="og:title" content="Global Decryptor | Decrypt .sa .sav .lsa .lsav Files with Hex Key">
+    <meta property="og:description" content="Decrypt encrypted files (.sa, .sav, .lsa, .lsav) using a hex key. Educational and personal recovery purposes only.">
+    <meta property="og:image" content="https://global-decryptor.vercel.app/TDRcropped.jpg">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://global-decryptor.vercel.app/">
+    <meta name="twitter:title" content="Global Decryptor | Decrypt .sa .sav .lsa .lsav Files with Hex Key">
+    <meta name="twitter:description" content="Decrypt encrypted files (.sa, .sav, .lsa, .lsav) using a hex key. Educational and personal recovery purposes only.">
+    <meta name="twitter:image" content="https://global-decryptor.vercel.app/TDRcropped.jpg">
+
+    <!-- Structured Data: WebApplication + FAQ -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Global Decryptor",
+      "url": "https://global-decryptor.vercel.app/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Web",
+      "description": "Decrypt Xiaomi and other encrypted files (.sa, .sav, .lsa, .lsav) using a provided hex key. Educational and personal file recovery purposes only.",
+      "image": "https://global-decryptor.vercel.app/TDRcropped.jpg",
+      "author": {
+        "@type": "Organization",
+        "name": "The DevOps Rite",
+        "url": "https://devopsrite.vercel.app/"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context":"https://schema.org",
+      "@type":"FAQPage",
+      "mainEntity":[
+        {
+          "@type":"Question",
+          "name":"What file types does Global Decryptor support?",
+          "acceptedAnswer":{"@type":"Answer","text":"It targets encrypted files such as .sa, .sav, .lsa, and .lsav. The backend tries AES, DES, and XOR modes with your provided hex key and returns the first valid result."}
+        },
+        {
+          "@type":"Question",
+          "name":"Is Global Decryptor free and safe?",
+          "acceptedAnswer":{"@type":"Answer","text":"Yes. It is free and intended for educational use and personal file recovery only. Do not use it to access data you don’t own or have permission to decrypt."}
+        },
+        {
+          "@type":"Question",
+          "name":"Do you store my files or keys?",
+          "acceptedAnswer":{"@type":"Answer","text":"No. Files and keys are processed to perform decryption and are not stored."}
+        }
+      ]
+    }
+    </script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -58,9 +123,22 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
         }
 
+        h1 {
+            margin-bottom: 16px;
+            color: #333;
+            font-size: 1.35rem;
+        }
+
         h2 {
             margin-bottom: 20px;
             color: #333;
+        }
+
+        p.seo-intro {
+            margin: -8px 0 12px 0;
+            color: #555;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         input[type="text"],
@@ -607,7 +685,10 @@
         <!-- New centered image (tdrcropped) -->
         <img id="centerImage" src="TDRcropped.jpg" alt="Logo">
 
-        <h2>Decrypt Encrypted File</h2>
+        <h1>Global Decryptor – Decrypt .sa .sav .lsa .lsav with Hex Key</h1>
+        <p class="seo-intro">
+            Upload an encrypted file and provide its hex key. Global Decryptor will try multiple algorithms (AES, DES, XOR) and return the first valid decrypted result. For educational use and personal file recovery only.
+        </p>
         <form id="decryptForm">
             <input type="text" id="hexKey" placeholder="Enter 16 digit Hex Key">
             <input type="file" id="fileInput" required>
